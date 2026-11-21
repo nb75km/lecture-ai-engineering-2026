@@ -145,7 +145,21 @@ def print_trace(result, elapsed_seconds: float | None = None) -> None:
             if isinstance(part, ToolCallPart):
                 print(f"[tool call]   {part.tool_name}({part.args})")
             elif isinstance(part, ToolReturnPart):
-                if part.tool_name == "browse_tree":
+                if part.tool_name in ("search_materials", "search_graph"):
+                    data = json.loads(part.content)
+                    if "error" in data:
+                        print(f"[tool return] {part.tool_name} -> {data['error']}")
+                    else:
+                        pages = data["results"] if part.tool_name == "search_materials" else (
+                            data["seeds"] + data["expanded"]
+                        )
+                        print(f"[tool return] {part.tool_name} -> {len(pages)} ページ")
+                        for page in pages:
+                            label = page["page_id"]
+                            if "adjacent_to" in page:
+                                label += f" (前後ページ・起点 {page['adjacent_to']})"
+                            print(f"    - {label}")
+                elif part.tool_name == "browse_tree":
                     data = json.loads(part.content)
                     if "error" in data:
                         print(f"[tool return] {part.tool_name} -> {data['error']}")
