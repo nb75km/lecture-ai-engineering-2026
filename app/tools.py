@@ -8,7 +8,7 @@ import json
 from functools import cache
 from pathlib import Path
 
-from app.config import api_error_message
+from app.config import RAG_INCLUDE_NEIGHBORS, api_error_message
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 MAX_RESULTS = 3
@@ -91,7 +91,10 @@ def search_materials(query: str) -> str:
     from app.retrieval import search
 
     try:
-        return json.dumps({"results": search(query)}, ensure_ascii=False)
+        return json.dumps(
+            {"results": search(query, include_neighbors=RAG_INCLUDE_NEIGHBORS)},
+            ensure_ascii=False,
+        )
     except (ValueError, FileNotFoundError, sqlite3.Error) as e:
         return json.dumps({"error": str(e), "results": []}, ensure_ascii=False)
     except APIError as e:
